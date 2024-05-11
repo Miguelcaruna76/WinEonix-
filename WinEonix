@@ -25,6 +25,12 @@ stop_emulator() {
 }
 
 echo "Welcome to WinEonix!"
+
+# Install QEMU
+echo "Installing QEMU..."
+pkg install qemu-system-x86_64 -y &>/dev/null
+echo "QEMU installed successfully!"
+
 echo "To start WinEonix, type 'WinEonix'. To stop it, type '1'."
 
 while true; do
