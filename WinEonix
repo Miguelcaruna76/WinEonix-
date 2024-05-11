@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Function to install QEMU
+install_qemu() {
+    echo "Installing QEMU..."
+    pkg install qemu-system-x86_64 -y &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "QEMU installed successfully!"
+    else
+        echo "Failed to install QEMU. Please check your internet connection and try again."
+        exit 1
+    fi
+}
+
 # Function to start the WinEonix emulator
 start_emulator() {
     # Run Windows 10 using QEMU on Termux-X11
@@ -21,10 +33,10 @@ start_emulator() {
 
 echo "Welcome to WinEonix!"
 
-# Install QEMU if not already installed
-echo "Installing QEMU..."
-pkg install qemu-system-x86_64 -y &>/dev/null
-echo "QEMU installed successfully!"
+# Check if QEMU is installed, if not, install it
+if ! command -v qemu-system-x86_64 &>/dev/null; then
+    install_qemu
+fi
 
 # Start the emulator
 start_emulator
