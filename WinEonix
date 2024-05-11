@@ -19,17 +19,6 @@ install_dependencies() {
     pkg install qemu-utils xorg-server-xvfb
 }
 
-# Function to install xdotool if not available in Termux repository
-install_xdotool() {
-    echo "Checking xdotool availability..."
-    if ! command -v xdotool &> /dev/null; then
-        echo "xdotool not found, attempting to install..."
-        # Add code here to install xdotool using an alternative method if available
-    else
-        echo "xdotool already installed."
-    fi
-}
-
 # Function to download Windows 10 ISO
 download_windows_iso() {
     echo "Downloading Windows 10 ISO..."
@@ -59,15 +48,23 @@ stop_emulator() {
 # Main script
 if [ "$1" == "1" ]; then
     stop_emulator
+    exit
 elif [ "$1" == "alias" ]; then
-    alias WinEonix='./WinEonix.sh'
-    echo "Alias created: WinEonix to start the emulator. Type '1' to stop it."
-else
-    grant_storage_permission
-    grant_execute_permission
-    install_dependencies
-    install_xdotool
-    download_windows_iso
-    create_disk_image
-    launch_emulator
+    echo "To stop WinEonix, type '1' and press Enter."
+    exit
 fi
+
+# Check and grant storage permission
+if [ ! -d "~/storage" ]; then
+    grant_storage_permission
+fi
+
+grant_execute_permission
+install_dependencies
+download_windows_iso
+create_disk_image
+launch_emulator
+
+# Display message in Termux-X11
+echo "WinEonix is running. To stop WinEonix, type '1' and press Enter in Termux."
+echo "To start the emulator again, simply type 'WinEonix' in Termux."
