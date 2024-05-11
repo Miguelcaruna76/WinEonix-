@@ -16,7 +16,7 @@ grant_execute_permission() {
 # Function to install necessary dependencies
 install_dependencies() {
     echo "Installing necessary dependencies..."
-    pkg install wget qemu-system-x86_64 xvfb xdotool
+    pkg install qemu-system-x86_64-headless xdotool
 }
 
 # Function to download Windows 10 ISO
