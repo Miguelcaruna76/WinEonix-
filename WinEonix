@@ -10,32 +10,43 @@ grant_storage_permission() {
 # Function to check and grant execute permission to required binaries
 grant_execute_permission() {
     echo "Granting execute permission to required binaries..."
-    chmod +x $PREFIX/bin/WinEonix
+    chmod +x ~/WinEonix.sh
 }
 
 # Function to install necessary dependencies
 install_dependencies() {
     echo "Installing necessary dependencies..."
-    pkg install qemu-system-x86_64-headless xdotool
+    pkg install qemu-utils xorg-server-xvfb
+}
+
+# Function to install xdotool if not available in Termux repository
+install_xdotool() {
+    echo "Checking xdotool availability..."
+    if ! command -v xdotool &> /dev/null; then
+        echo "xdotool not found, attempting to install..."
+        # Add code here to install xdotool using an alternative method if available
+    else
+        echo "xdotool already installed."
+    fi
 }
 
 # Function to download Windows 10 ISO
 download_windows_iso() {
     echo "Downloading Windows 10 ISO..."
-    wget -O Win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US"
+    wget -O ~/Win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US"
 }
 
 # Function to create disk image
 create_disk_image() {
     echo "Creating disk image..."
-    qemu-img create -f qcow2 Win10_disk.qcow2 20G
+    qemu-img create -f qcow2 ~/Win10_disk.qcow2 20G
 }
 
 # Function to launch Windows 10 emulator
 launch_emulator() {
     echo "Launching Windows 10 emulator..."
     Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1
-    qemu-system-x86_64 -cdrom Win10.iso -drive file=Win10_disk.qcow2,format=qcow2 -display sdl &
+    qemu-system-x86_64 -cdrom ~/Win10.iso -drive file=~/Win10_disk.qcow2,format=qcow2 &
     EMULATOR_PID=$! # Save the PID of the emulator process
 }
 
@@ -55,6 +66,7 @@ else
     grant_storage_permission
     grant_execute_permission
     install_dependencies
+    install_xdotool
     download_windows_iso
     create_disk_image
     launch_emulator
