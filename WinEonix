@@ -16,26 +16,26 @@ grant_execute_permission() {
 # Function to install necessary dependencies
 install_dependencies() {
     echo "Installing necessary dependencies..."
-    pkg install qemu-utils xorg-server-xvfb
+    pkg install -y qemu-utils xorg-server-xvfb || { echo "Failed to install dependencies. Exiting."; exit 1; }
 }
 
 # Function to download Windows 10 ISO
 download_windows_iso() {
     echo "Downloading Windows 10 ISO..."
-    wget -O ~/Win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US"
+    wget -O ~/Win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US" || { echo "Failed to download Windows 10 ISO. Exiting."; exit 1; }
 }
 
 # Function to create disk image
 create_disk_image() {
     echo "Creating disk image..."
-    qemu-img create -f qcow2 ~/Win10_disk.qcow2 20G
+    qemu-img create -f qcow2 ~/Win10_disk.qcow2 20G || { echo "Failed to create disk image. Exiting."; exit 1; }
 }
 
 # Function to launch Windows 10 emulator
 launch_emulator() {
     echo "Launching Windows 10 emulator..."
-    Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1
-    qemu-system-x86_64 -cdrom ~/Win10.iso -drive file=~/Win10_disk.qcow2,format=qcow2 &
+    Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1 || { echo "Failed to launch Xvfb. Exiting."; exit 1; }
+    qemu-system-x86_64 -cdrom ~/Win10.iso -drive file=~/Win10_disk.qcow2,format=qcow2 & || { echo "Failed to launch emulator. Exiting."; exit 1; }
     EMULATOR_PID=$! # Save the PID of the emulator process
 }
 
