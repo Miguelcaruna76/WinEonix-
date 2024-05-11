@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Function to start the WinEonix emulator
 start_emulator() {
     # Run Windows 10 using QEMU on Termux-X11
     qemu-system-x86_64 \
@@ -18,33 +19,12 @@ start_emulator() {
       -vnc :1
 }
 
-stop_emulator() {
-    echo "Stopping WinEonix..."
-    # Insert any cleanup or stop logic here if needed
-    echo "WinEonix stopped."
-}
-
 echo "Welcome to WinEonix!"
 
-# Install QEMU
+# Install QEMU if not already installed
 echo "Installing QEMU..."
 pkg install qemu-system-x86_64 -y &>/dev/null
 echo "QEMU installed successfully!"
 
-echo "To start WinEonix, type 'WinEonix'. To stop it, type '1'."
-
-while true; do
-    read input
-    case $input in
-        WinEonix)
-            start_emulator
-            ;;
-        1)
-            stop_emulator
-            exit 0
-            ;;
-        *)
-            echo "Invalid input. Type 'WinEonix' to start or '1' to stop."
-            ;;
-    esac
-done
+# Start the emulator
+start_emulator
