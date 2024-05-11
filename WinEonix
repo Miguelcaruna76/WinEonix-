@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Function to check and grant storage permission
+grant_storage_permission() {
+    echo "Granting storage permission..."
+    termux-setup-storage
+    sleep 4
+}
+
+# Function to check and grant execute permission to required binaries
+grant_execute_permission() {
+    echo "Granting execute permission to required binaries..."
+    chmod +x $PREFIX/bin/WinEonix
+}
+
+# Function to install necessary dependencies
+install_dependencies() {
+    echo "Installing necessary dependencies..."
+    pkg install wget qemu-system-x86_64 xvfb xdotool
+}
+
+# Function to download Windows 10 ISO
+download_windows_iso() {
+    echo "Downloading Windows 10 ISO..."
+    wget -O Win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US"
+}
+
+# Function to create disk image
+create_disk_image() {
+    echo "Creating disk image..."
+    qemu-img create -f qcow2 Win10_disk.qcow2 20G
+}
+
+# Function to launch Windows 10 emulator
+launch_emulator() {
+    echo "Launching Windows 10 emulator..."
+    Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1
+    qemu-system-x86_64 -cdrom Win10.iso -drive file=Win10_disk.qcow2,format=qcow2 -display sdl &
+    EMULATOR_PID=$! # Save the PID of the emulator process
+}
+
+# Function to stop the emulator
+stop_emulator() {
+    echo "Stopping Windows 10 emulator..."
+    kill $EMULATOR_PID # Kill the emulator process using the saved PID
+}
+
+# Main script
+if [ "$1" == "1" ]; then
+    stop_emulator
+elif [ "$1" == "alias" ]; then
+    alias WinEonix='./WinEonix.sh'
+    echo "Alias created: WinEonix to start the emulator. Type '1' to stop it."
+else
+    grant_storage_permission
+    grant_execute_permission
+    install_dependencies
+    download_windows_iso
+    create_disk_image
+    launch_emulator
+fi
