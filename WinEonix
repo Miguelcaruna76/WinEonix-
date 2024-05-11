@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Remove existing file (if any)
-rm ~/x
+if [ -f ~/x ]; then
+    rm ~/x
+fi
 
 # Install termux-am
 echo "Installing termux-am"
@@ -19,12 +21,9 @@ while true; do
     sleep 3
 done
 
-# Install necessary packages including wget
+# Install necessary packages
 echo "Installing termux packages"
-apt-get clean
-apt-get update >/dev/null 2>&1
-apt-get -y --with-new-pkgs -o Dpkg::Options::="--force-confdef" upgrade >/dev/null 2>&1
-pkg install x11-repo pulseaudio xwayland wget qemu-utils tsu root-repo patchelf p7zip xorg-xrandr ncurses-utils hashdeep termux-x11-nightly -y &>/dev/null
+pkg install x11-repo pulseaudio xwayland wget tsu root-repo patchelf p7zip xorg-xrandr ncurses-utils hashdeep termux-x11-nightly -y &>/dev/null
 
 # Remove previous glibc if exists
 if [ -e $PREFIX/glibc ]; then
@@ -37,13 +36,18 @@ if [ -e $PREFIX/glibc ]; then
     fi
 fi
 
+# Install wget if not installed
+if ! command -v wget &> /dev/null; then
+    echo "Installing wget..."
+    pkg install wget -y &>/dev/null
+fi
+
 # Download Windows 10 ISO
 echo "Downloading Windows 10 ISO"
-wget -O ~/win10.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US"
+wget https://go.microsoft.com/fwlink/p/?LinkID=2195404&clcid=0x409&culture=en-us&country=US -O ~/win10.iso
 
 # Run QEMU with Windows 10 ISO and enable mouse and keyboard input
 echo "Starting Windows 10 installation"
-Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1
 qemu-system-x86_64 -cdrom ~/win10.iso -m 4G -boot d -usb -device usb-tablet
 
 # Cleanup: Remove the ISO file after installation
