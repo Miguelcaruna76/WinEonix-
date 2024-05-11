@@ -35,7 +35,7 @@ create_disk_image() {
 launch_emulator() {
     echo "Launching Windows 10 emulator..."
     Xvfb :1 -screen 0 1024x768x24 & export DISPLAY=:1 || { echo "Failed to launch Xvfb. Exiting."; exit 1; }
-    qemu-system-x86_64 -cdrom ~/Win10.iso -drive file=~/Win10_disk.qcow2,format=qcow2 & || { echo "Failed to launch emulator. Exiting."; exit 1; }
+    qemu-system-x86_64 -cdrom ~/Win10.iso -drive file=~/Win10_disk.qcow2,format=qcow2 & { echo "Failed to launch emulator. Exiting."; exit 1; }
     EMULATOR_PID=$! # Save the PID of the emulator process
 }
 
