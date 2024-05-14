@@ -9,19 +9,17 @@ fi
 # Install Docker if not already installed
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker..."
-    apt-get update
-    apt-get install -y docker.io
+    pkg update
+    pkg install -y docker
+    echo "Docker installed successfully."
 fi
 
 # Start the X11 server in Termux
 echo "Starting Termux-X11..."
 termux-setup-storage
 export DISPLAY=:0
-x11vnc -display :0 -localhost -nopw &
-
-# Allow mouse and keyboard input
-xinput --disable $(xinput list --id-only 'Virtual core pointer')
-xinput --disable $(xinput list --id-only 'Virtual core keyboard')
+Xvfb :1 -screen 0 1024x768x16 &
+export DISPLAY=:1
 
 # Start the Windows 11 container
 echo "Starting WinEonix emulator..."
@@ -51,17 +49,26 @@ EOF
 
 docker-compose up -d
 
+# Function to restart the WinEonix emulator
+restart_emulator() {
+    echo "Restarting WinEonix emulator..."
+    docker-compose down
+    docker-compose up -d
+    echo "WinEonix emulator restarted."
+}
+
 # Display message and wait for user input
 echo "WinEonix emulator started."
-echo "To shutdown WinEonix, type '1' and press Enter."
+echo "To restart WinEonix, type 'WinEonix' and press Enter."
 read -p "Enter '1' to shutdown WinEonix: " choice
 
 # Check user input
 if [[ $choice == "1" ]]; then
-    # Stop the Windows 11 container
     echo "Shutting down WinEonix emulator..."
     docker-compose down
     echo "WinEonix emulator stopped."
+elif [[ $choice == "WinEonix" ]]; then
+    restart_emulator
 else
     echo "Invalid input. Exiting..."
 fi
