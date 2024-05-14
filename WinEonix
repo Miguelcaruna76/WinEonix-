@@ -1,42 +1,67 @@
 #!/bin/bash
 
-# Function to install QEMU
-install_qemu() {
-    echo "Installing QEMU..."
-    pkg install qemu-system-x86_64 -y &>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "QEMU installed successfully!"
-    else
-        echo "Failed to install QEMU. Please check your internet connection and try again."
-        exit 1
-    fi
-}
-
-# Function to start the WinEonix emulator
-start_emulator() {
-    # Run Windows 10 using QEMU on Termux-X11
-    qemu-system-x86_64 \
-      -name WinEonix \
-      -m 4G \
-      -cdrom win10.iso \
-      -vga std \
-      -soundhw hda \
-      -device usb-tablet \
-      -enable-kvm \
-      -display sdl \
-      -cpu host \
-      -smp $(nproc) \
-      -net nic \
-      -net user,hostfwd=tcp::3389-:3389 \
-      -vnc :1
-}
-
-echo "Welcome to WinEonix!"
-
-# Check if QEMU is installed, if not, install it
-if ! command -v qemu-system-x86_64 &>/dev/null; then
-    install_qemu
+# Check if Termux-X11 is installed
+if ! command -v termux-setup-storage &> /dev/null; then
+    echo "Please install Termux-X11 to proceed."
+    exit 1
 fi
 
-# Start the emulator
-start_emulator
+# Install Docker if not already installed
+if ! command -v docker &> /dev/null; then
+    echo "Installing Docker..."
+    apt-get update
+    apt-get install -y docker.io
+fi
+
+# Start the X11 server in Termux
+echo "Starting Termux-X11..."
+termux-setup-storage
+export DISPLAY=:0
+x11vnc -display :0 -localhost -nopw &
+
+# Allow mouse and keyboard input
+xinput --disable $(xinput list --id-only 'Virtual core pointer')
+xinput --disable $(xinput list --id-only 'Virtual core keyboard')
+
+# Start the Windows 11 container
+echo "Starting WinEonix emulator..."
+cat <<EOF > docker-compose.yml
+version: "3"
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8006:8006
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    stop_grace_period: 2m
+    restart: on-failure
+    volumes:
+      - ./data:/storage
+    environment:
+      RAM_SIZE: "8G"
+      CPU_CORES: 3
+      DISK_SIZE: "100G"
+EOF
+
+docker-compose up -d
+
+# Display message and wait for user input
+echo "WinEonix emulator started."
+echo "To shutdown WinEonix, type '1' and press Enter."
+read -p "Enter '1' to shutdown WinEonix: " choice
+
+# Check user input
+if [[ $choice == "1" ]]; then
+    # Stop the Windows 11 container
+    echo "Shutting down WinEonix emulator..."
+    docker-compose down
+    echo "WinEonix emulator stopped."
+else
+    echo "Invalid input. Exiting..."
+fi
